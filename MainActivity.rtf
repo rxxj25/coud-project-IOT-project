@@ -1,0 +1,140 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2638
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 package com.example.smartparking;\
+\
+import android.graphics.Color;\
+import android.os.Bundle;\
+import android.view.View;\
+import android.widget.Button;\
+import android.widget.EditText;\
+import android.widget.GridLayout;\
+import android.widget.TextView;\
+import android.widget.Toast;\
+import androidx.appcompat.app.AppCompatActivity;\
+import android.content.Intent;\
+\
+public class MainActivity extends AppCompatActivity \{\
+\
+    private static final int NUM_ROWS = 3;\
+    private static final int NUM_COLS = 3;\
+    private Button[][] parkingSpots = new Button[NUM_ROWS][NUM_COLS];\
+    private EditText editTextVehicleNumber;\
+    private TextView textViewAmount;\
+    private Button buttonBookSpot;\
+    private Button buttonLogout; // Button for logging out and redirecting to Sign-Up page\
+    private int selectedSpotRow = -1;\
+    private int selectedSpotCol = -1;\
+\
+    @Override\
+    protected void onCreate(Bundle savedInstanceState) \{\
+        super.onCreate(savedInstanceState);\
+        setContentView(R.layout.activity_main);\
+\
+        GridLayout gridLayout = findViewById(R.id.gridLayout);\
+        editTextVehicleNumber = findViewById(R.id.editTextVehicleNumber);\
+        textViewAmount = findViewById(R.id.textViewAmount);\
+        buttonBookSpot = findViewById(R.id.buttonBookSpot);\
+        buttonLogout = findViewById(R.id.buttonLogout); // Initialize logout button\
+\
+        // Set up parking spots\
+        for (int row = 0; row < NUM_ROWS; row++) \{\
+            for (int col = 0; col < NUM_COLS; col++) \{\
+                Button spot = new Button(this);\
+                spot.setLayoutParams(new GridLayout.LayoutParams());\
+                spot.setText("Spot " + (row * NUM_COLS + col + 1));\
+                spot.setBackgroundColor(Color.GREEN);\
+                spot.setTag("free");\
+                final int r = row;\
+                final int c = col;\
+                spot.setOnClickListener(new View.OnClickListener() \{\
+                    @Override\
+                    public void onClick(View v) \{\
+                        selectSpot(r, c);\
+                    \}\
+                \});\
+                parkingSpots[row][col] = spot;\
+                gridLayout.addView(spot);\
+            \}\
+        \}\
+\
+        // Book spot button action\
+        buttonBookSpot.setOnClickListener(new View.OnClickListener() \{\
+            @Override\
+            public void onClick(View v) \{\
+                bookSpot();\
+            \}\
+        \});\
+\
+        // Logout button action\
+        buttonLogout.setOnClickListener(new View.OnClickListener() \{\
+            @Override\
+            public void onClick(View v) \{\
+                Intent intent = new Intent(MainActivity.this, SignUpActivity.class);\
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the activity stack\
+                startActivity(intent);\
+                finish(); // Ensure MainActivity is finished\
+            \}\
+        \});\
+    \}\
+\
+    private void selectSpot(int row, int col) \{\
+        Button spot = parkingSpots[row][col];\
+        if (spot.getTag().equals("occupied")) \{\
+            Toast.makeText(this, "This spot is already occupied", Toast.LENGTH_SHORT).show();\
+            return;\
+        \}\
+        resetSpotSelection();\
+        selectedSpotRow = row;\
+        selectedSpotCol = col;\
+        spot.setBackgroundColor(Color.BLUE);\
+        spot.setText("Selected");\
+    \}\
+\
+    private void resetSpotSelection() \{\
+        if (selectedSpotRow != -1 && selectedSpotCol != -1) \{\
+            Button spot = parkingSpots[selectedSpotRow][selectedSpotCol];\
+            if (spot.getTag().equals("free")) \{\
+                spot.setBackgroundColor(Color.GREEN);\
+                spot.setText("Spot " + (selectedSpotRow * NUM_COLS + selectedSpotCol + 1));\
+            \}\
+        \}\
+    \}\
+\
+    private void bookSpot() \{\
+        if (selectedSpotRow == -1 || selectedSpotCol == -1) \{\
+            Toast.makeText(this, "No spot selected", Toast.LENGTH_SHORT).show();\
+            return;\
+        \}\
+\
+        String vehicleNumber = editTextVehicleNumber.getText().toString();\
+        if (vehicleNumber.isEmpty()) \{\
+            editTextVehicleNumber.setError("Vehicle number is required");\
+            return;\
+        \}\
+\
+        Button spot = parkingSpots[selectedSpotRow][selectedSpotCol];\
+        if (spot.getTag().equals("occupied")) \{\
+            Toast.makeText(this, "Spot is already booked", Toast.LENGTH_SHORT).show();\
+            return;\
+        \}\
+\
+        spot.setTag("occupied");\
+        spot.setBackgroundColor(Color.RED);\
+        spot.setText("Occupied\\n" + vehicleNumber);\
+\
+        // Set amount to be paid\
+        textViewAmount.setText("Amount to be Paid: $20");\
+\
+        // Reset selection\
+        selectedSpotRow = -1;\
+        selectedSpotCol = -1;\
+\
+        Toast.makeText(this, "Spot booked successfully", Toast.LENGTH_SHORT).show();\
+    \}\
+\}\
+}
